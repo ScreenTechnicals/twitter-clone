@@ -4,7 +4,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { useUserSession } from "@/hooks/use-user-session.hook"
 import { cn } from "@/utils/cn"
-import { Bell, Bookmark, Home, Mail, MoreHorizontal, PenSquare, Search, User } from "lucide-react"
+import { Bell, Bookmark, Home, MoreHorizontal, PenSquare, Search, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -12,7 +12,6 @@ const sidebarItems = [
     { icon: Home, label: "Home", href: "/home" },
     { icon: Search, label: "Explore", href: "/explore" },
     { icon: Bell, label: "Notifications", href: "/notifications" },
-    { icon: Mail, label: "Messages", href: "/messages" },
     { icon: Bookmark, label: "Bookmarks", href: "/bookmarks" },
     { icon: User, label: "Profile", href: "/profile" },
 ]
@@ -47,10 +46,7 @@ export function Sidebar() {
                             </Link>
                         )
                     })}
-                    <button className="flex items-center gap-4 p-3 rounded-full transition-colors hover:bg-gray-900 max-xl:justify-center">
-                        <MoreHorizontal className="w-7 h-7" />
-                        <span className="text-xl max-xl:hidden">More</span>
-                    </button>
+
                 </nav>
 
                 <Button className="w-full h-14 text-lg font-bold rounded-full mt-4 max-xl:w-14 max-xl:h-14 max-xl:p-0">
