@@ -164,7 +164,7 @@ export default function HookLab() {
     const { data: whoToFollow, refetch: refetchWhoToFollow } = useWhoToFollow()
     const { mutateAsync: followUser, isPending: followPending } = useFollowUser()
 
-    const recentPosts = homeFeed?.slice(0, 10) || []
+    const recentPosts = homeFeed?.pages.flatMap(p => p).slice(0, 10) || []
 
     const run = async (fn: () => Promise<any>, successMsg: string, loadingMsg?: string) => {
         const id = toast.loading(loadingMsg || "Processing...")
@@ -568,12 +568,19 @@ export default function HookLab() {
                                                 <RefreshCw className="w-4 h-4" /> Trigger Now
                                             </button>
                                             <div className="space-y-4">
-                                                {(selectedHook === "useHomeTimeline" ? homeFeed : selectedHook === "usePublicTimeline" ? publicFeed : trendingPosts)?.slice(0, 5).map((p: any) => (
-                                                    <div key={p.id} className="bg-input/50 rounded-xl p-5 border border-blue-600/20">
-                                                        <p className="text-sm font-medium text-blue-300">@{p.account.acct}</p>
-                                                        <div className="mt-2" dangerouslySetInnerHTML={{ __html: p.content }} />
-                                                    </div>
-                                                ))}
+                                                {(() => {
+                                                    const feedData = selectedHook === "useHomeTimeline"
+                                                        ? homeFeed?.pages.flatMap(p => p)
+                                                        : selectedHook === "usePublicTimeline"
+                                                            ? publicFeed
+                                                            : trendingPosts
+                                                    return feedData?.slice(0, 5).map((p: any) => (
+                                                        <div key={p.id} className="bg-input/50 rounded-xl p-5 border border-blue-600/20">
+                                                            <p className="text-sm font-medium text-blue-300">@{p.account.acct}</p>
+                                                            <div className="mt-2" dangerouslySetInnerHTML={{ __html: p.content }} />
+                                                        </div>
+                                                    ))
+                                                })()}
                                             </div>
                                         </DemoCard>
                                     )}
