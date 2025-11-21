@@ -2,6 +2,7 @@
 
 import { Avatar } from "@/components/ui/avatar"
 import { useDeleteStatus } from "@/hooks/mutations/use-delete-status.hook"
+import { useEditStatus } from "@/hooks/mutations/use-edit-status.hook"
 import { useFavouriteStatus } from "@/hooks/mutations/use-favourite-status.hook"
 import { useReblogStatus } from "@/hooks/mutations/use-reblog-status.hook"
 import { useUserSession } from "@/hooks/use-user-session.hook"
@@ -76,11 +77,37 @@ export function PostCard({ post }: PostCardProps) {
         }
     }
 
+    const { mutateAsync: editStatus, isPending: isEditingPost } = useEditStatus()
+    const [isEditing, setIsEditing] = useState(false)
+    const [editContent, setEditContent] = useState("")
+
     const handleEdit = (e: React.MouseEvent) => {
         e.stopPropagation()
         setShowMenu(false)
-        toast.info("Edit functionality coming soon!")
-        // TODO: Implement edit mode
+        // Strip HTML tags for editing
+        const plainText = post.content.replace(/<[^>]*>/g, '')
+        setEditContent(plainText)
+        setIsEditing(true)
+    }
+
+    const handleSaveEdit = async () => {
+        if (!editContent.trim()) return
+
+        try {
+            await editStatus({
+                statusId: post.id,
+                status: editContent
+            })
+            setIsEditing(false)
+            toast.success("Post updated")
+        } catch (error) {
+            toast.error("Failed to update post")
+        }
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditing(false)
+        setEditContent("")
     }
 
     const handleLike = async (e: React.MouseEvent) => {
@@ -111,7 +138,7 @@ export function PostCard({ post }: PostCardProps) {
 
     return (
         <article
-            onClick={() => router.push(`/ status / ${post.id} `)}
+            onClick={() => !isEditing && router.push(`/status/${post.id}`)}
             className="border-b border-gray-800 p-4 hover:bg-gray-900/30 transition-colors cursor-pointer relative"
         >
             <div className="flex gap-3">
@@ -136,43 +163,72 @@ export function PostCard({ post }: PostCardProps) {
                             </span>
                         </div>
 
-                        <div className="relative" ref={menuRef}>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setShowMenu(!showMenu)
-                                }}
-                                className="p-2 hover:bg-blue-500/10 rounded-full group transition-colors"
-                            >
-                                <MoreHorizontal className="w-5 h-5 text-gray-500 group-hover:text-blue-500" />
-                            </button>
+                        {!isEditing && (
+                            <div className="relative" ref={menuRef}>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setShowMenu(!showMenu)
+                                    }}
+                                    className="p-2 hover:bg-blue-500/10 rounded-full group transition-colors"
+                                >
+                                    <MoreHorizontal className="w-5 h-5 text-gray-500 group-hover:text-blue-500" />
+                                </button>
 
-                            {showMenu && isOwner && (
-                                <div className="absolute right-0 top-full mt-1 w-32 bg-black border border-gray-800 rounded-lg shadow-lg z-50 overflow-hidden">
-                                    <button
-                                        onClick={handleEdit}
-                                        className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-900 text-left text-sm transition-colors"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={handleDelete}
-                                        className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-900 text-left text-sm text-red-500 transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                                {showMenu && isOwner && (
+                                    <div className="absolute right-0 top-full mt-1 w-32 bg-black border border-gray-800 rounded-lg shadow-lg z-50 overflow-hidden">
+                                        <button
+                                            onClick={handleEdit}
+                                            className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-900 text-left text-sm transition-colors"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-900 text-left text-sm text-red-500 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
 
-                    <div
-                        className="mt-1 text-[15px] leading-normal break-words [&_a]:text-blue-400 [&_a]:hover:underline"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
-                    />
+                    {isEditing ? (
+                        <div className="mt-2" onClick={e => e.stopPropagation()}>
+                            <textarea
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                className="w-full bg-black border border-gray-800 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 resize-none min-h-[100px]"
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                                <button
+                                    onClick={handleCancelEdit}
+                                    className="px-4 py-1.5 text-sm font-bold text-white hover:bg-gray-900 rounded-full transition-colors"
+                                    disabled={isEditingPost}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveEdit}
+                                    className="px-4 py-1.5 text-sm font-bold bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50"
+                                    disabled={!editContent.trim() || isEditingPost}
+                                >
+                                    {isEditingPost ? "Saving..." : "Save"}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            className="mt-1 text-[15px] leading-normal break-words [&_a]:text-blue-400 [&_a]:hover:underline"
+                            dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
+                    )}
 
                     {post.mediaAttachments?.length > 0 && (
                         <div className={cn(
