@@ -7,6 +7,7 @@ type PostStatusParams = {
     files?: File[]; // optional images/videos
     sensitive?: boolean;
     spoilerText?: string;
+    inReplyToId?: string;
 };
 
 export function usePostStatus(visibility: StatusVisibility = "public") {
@@ -27,7 +28,7 @@ export function usePostStatus(visibility: StatusVisibility = "public") {
     };
 
     return useMutation({
-        mutationFn: async ({ status, files, sensitive, spoilerText }: PostStatusParams) => {
+        mutationFn: async ({ status, files, sensitive, spoilerText, inReplyToId }: PostStatusParams) => {
             if (!mastoClient) throw new Error("Masto client not initialized");
 
             let mediaIds: string[] = [];
@@ -63,15 +64,36 @@ export function usePostStatus(visibility: StatusVisibility = "public") {
                 sensitive: sensitive ?? false,
                 spoilerText: spoilerText ?? undefined,
                 visibility,
+                inReplyToId,
             });
 
             return newStatus;
         },
 
         // ✅ 3️⃣ On success → revalidate queries
-        onSuccess: () => {
+        onSuccess: (newStatus, variables) => {
+            // Optimistic update for reply count
+            if (variables.inReplyToId) {
+                // We don't have the initial count here easily, but we can increment whatever is in the store
+                // or just rely on the invalidation if we don't want to pass initial count everywhere.
+                // For now, let's just invalidate.
+                // Actually, let's try to update the cache for immediate feedback.
+
+                queryClient.setQueryData(["status-context", variables.inReplyToId], (oldData: any) => {
+                    if (!oldData) return oldData;
+                    return {
+                        ...oldData,
+                        descendants: [...oldData.descendants, newStatus]
+                    };
+                });
+            }
+
             queryClient.invalidateQueries({ queryKey: ["user-posts"] });
             queryClient.invalidateQueries({ queryKey: ["home-timeline"] });
+            if (variables.inReplyToId) {
+                queryClient.invalidateQueries({ queryKey: ["status", variables.inReplyToId] });
+                queryClient.invalidateQueries({ queryKey: ["status-context", variables.inReplyToId] });
+            }
         },
     });
 }

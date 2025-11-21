@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function proxy(request: NextRequest) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
-    const protectedPaths = ["/profile", "/test-hooks"];
+    const protectedPaths = ["/profile", "/test-hooks", "/home"];
     const authPaths = ["/login"];
     const { pathname } = request.nextUrl;
 
@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (isAuthPage && token) {
-        return NextResponse.redirect(new URL("/test-hooks", request.url));
+        return NextResponse.redirect(new URL("/home", request.url));
     }
 
     return NextResponse.next();
@@ -32,6 +32,7 @@ export const config = {
     matcher: [
         "/profile/:path*",
         "/test-hooks/:path*",
+        "/home/:path*",
         "/login",
     ],
 };
