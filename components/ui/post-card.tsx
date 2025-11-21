@@ -163,7 +163,7 @@ export function PostCard({ post }: PostCardProps) {
                             </span>
                         </div>
 
-                        {!isEditing && (
+                        {!isEditing && isOwner && (
                             <div className="relative" ref={menuRef}>
                                 <button
                                     onClick={(e) => {
