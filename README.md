@@ -1,7 +1,8 @@
 
-<img width="1440" height="816" alt="Screenshot 2025-11-12 at 11 38 41 AM" src="https://github.com/user-attachments/assets/2fec4c39-ac29-4afb-a2d4-4bd7b425bb2a" />
+<img width="1915" height="986" alt="image" src="https://github.com/user-attachments/assets/8d64726d-863e-4577-a284-166faee49813" />
 
-# 🧩 Mastodon Next Template - The Interactive Mastodon Hook Playground
+
+# 🧩 Twitter Clone - Build on Mastodon 
 
 > mastodon-next-template is an open-source, interactive playground built with **Next.js + Tailwind CSS**, designed to explore, test, and visualize **Mastodon API React hooks** in real time.
 > It provides a modern, developer-friendly interface to trigger queries, run mutations, and watch streaming events — all without touching the terminal.
@@ -205,3 +206,4 @@ If you like this project:
 * 🐦 Share it with your developer friends
 
 * 💬 Contribute new hooks or ideas
+
